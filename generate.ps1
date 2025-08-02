@@ -1,10 +1,11 @@
 #! /usr/bin/pwsh
 
 Param(
+    [string]$Path = ".\images",
     [int]$MaxSize = 4,
     [switch]$Smooth = $False,
     [switch]$VanillaThumbnails = $False,
-    [string]$Path = ".\images"
+    [switch]$Interpolate = $False
 )
 
 if (-Not (Get-Command ffmpeg -ErrorAction Ignore)) {
@@ -50,6 +51,8 @@ ForEach ($Image in $Images) {
     $Title = ($Image.BaseName -split " - ")[1]
     $Filename = "$($Author)_$Title".toLower().Replace(" ", "_").Replace("-", "_")
     $Resolution = (ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 $Image.FullName) -split "x"
+    $Frames = (ffprobe -v error -select_streams v:0 -count_frames -show_entries stream=nb_read_frames -print_format default=nokey=1:noprint_wrappers=1 $Image.FullName)
+    $Animated = $Frames -gt 1
     $Ratio = $Resolution[0] / $Resolution[1]
 
     #? Find best painting size
@@ -83,24 +86,68 @@ ForEach ($Image in $Images) {
     Write-Output $Image.BaseName
     Write-Host "Optimal painting size: $BestSize"
     Write-Output "Difference from painting aspect ratio: $SmallestDifference ($Resolution -> $NewResolution)"
+    $EstimatedFrames = 1
+    if ($Animated) {
+        $Duration = [double](ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $Image.FullName)
+        $EstimatedFrames = [Math]::Floor($Duration * 10)
+        if ($EstimatedFrames -ge $Frames) {
+            $EstimatedFrames -= 1
+        }
+        Write-Output "Estimated frames at 10fps: $EstimatedFrames"
+    }
     Write-Output "---"
+    
 
     #? Generate painting textures
     #* HD (crop only)
-    ffmpeg -v error -i $Image.FullName -vf "crop=$($NewResolution[0]):$($NewResolution[1]), scale=$($BestSize[0] * 256):$($BestSize[1] * 256)" ".\working\resourcepack_hd\assets\sketcher\textures\painting\$Filename.png"
+    ffmpeg -v error -i $Image.FullName -vf "crop=$($NewResolution[0]):$($NewResolution[1]), scale=$($BestSize[0] * 256):$($BestSize[1] * 256)$(if ($Animated) {", fps=10, tile=1x$EstimatedFrames"})" -frames:v 1 -update 1 ".\working\resourcepack_hd\assets\sketcher\textures\painting\$Filename.png"
     #* x16
-    ffmpeg -v error -i ".\working\resourcepack_hd\assets\sketcher\textures\painting\$Filename.png" -vf "scale=$($BestSize[0] * 16):$($BestSize[1] * 16):flags=$(if ($Smooth) {'bicubic'} else {'neighbor'})" ".\working\resourcepack\assets\sketcher\textures\painting\$Filename.png"
+    ffmpeg -v error -i $Image.FullName -vf "crop=$($NewResolution[0]):$($NewResolution[1]), scale=$($BestSize[0] * 16):$($BestSize[1] * 16):flags=$(if ($Smooth) {'bicubic'} else {'neighbor'})$(if ($Animated) {", fps=10, tile=1x$EstimatedFrames"})" -frames:v 1 -update 1 ".\working\resourcepack\assets\sketcher\textures\painting\$Filename.png"
     #* x32
-    ffmpeg -v error -i ".\working\resourcepack_hd\assets\sketcher\textures\painting\$Filename.png" -vf "scale=$($BestSize[0] * 32):$($BestSize[1] * 32):flags=$(if ($Smooth) {'bicubic'} else {'neighbor'})" ".\working\resourcepack_x32\assets\sketcher\textures\painting\$Filename.png"
+    ffmpeg -v error -i $Image.FullName -vf "crop=$($NewResolution[0]):$($NewResolution[1]), scale=$($BestSize[0] * 32):$($BestSize[1] * 32):flags=$(if ($Smooth) {'bicubic'} else {'neighbor'})$(if ($Animated) {", fps=10, tile=1x$EstimatedFrames"})" -frames:v 1 -update 1 ".\working\resourcepack_x32\assets\sketcher\textures\painting\$Filename.png"
 
     #? Generate item textures
     #* HD
-    ffmpeg -v error -i ".\working\resourcepack_hd\assets\sketcher\textures\painting\$Filename.png" -vf "scale=512:512:force_original_aspect_ratio=decrease, format=rgba, pad=512:512:-1:-1:color=0x00000000" ".\working\resourcepack_hd\assets\sketcher\textures\item\painting\$Filename.png"
+    ffmpeg -v error -i $Image.FullName -vf "crop=$($NewResolution[0]):$($NewResolution[1]), scale=512:512:force_original_aspect_ratio=decrease, format=rgba, pad=512:512:-1:-1:color=0x00000000" -frames:v 1 -update 1 ".\working\resourcepack_hd\assets\sketcher\textures\item\painting\$Filename.png"
     #* x16
-    ffmpeg -v error -i ".\working\resourcepack_hd\assets\sketcher\textures\painting\$Filename.png" -vf "scale=16:16:force_original_aspect_ratio=decrease:flags=$(if ($Smooth) {'bicubic'} else {'neighbor'}), format=rgba, pad=16:16:-1:-1:color=0x00000000" ".\working\resourcepack\assets\sketcher\textures\item\painting\$Filename.png"
+    ffmpeg -v error -i $Image.FullName -vf "crop=$($NewResolution[0]):$($NewResolution[1]), scale=16:16:force_original_aspect_ratio=decrease:flags=$(if ($Smooth) {'bicubic'} else {'neighbor'}), format=rgba, pad=16:16:-1:-1:color=0x00000000" -frames:v 1 -update 1 ".\working\resourcepack\assets\sketcher\textures\item\painting\$Filename.png"
     #* x32
-    ffmpeg -v error -i ".\working\resourcepack_hd\assets\sketcher\textures\painting\$Filename.png" -vf "scale=32:32:force_original_aspect_ratio=decrease:flags=$(if ($Smooth) {'bicubic'} else {'neighbor'}), format=rgba, pad=32:32:-1:-1:color=0x00000000" ".\working\resourcepack_x32\assets\sketcher\textures\item\painting\$Filename.png"
+    ffmpeg -v error -i $Image.FullName -vf "crop=$($NewResolution[0]):$($NewResolution[1]), scale=32:32:force_original_aspect_ratio=decrease:flags=$(if ($Smooth) {'bicubic'} else {'neighbor'}), format=rgba, pad=32:32:-1:-1:color=0x00000000" -frames:v 1 -update 1 ".\working\resourcepack_x32\assets\sketcher\textures\item\painting\$Filename.png"
 
+    if ($Animated) {
+        $16Metadata = @{
+            animation = @{
+                interpolate = $Interpolate.IsPresent
+                frametime = 2
+                width = $BestSize[0] * 16
+                height = $BestSize[1] * 16
+            }
+        }
+        $16MetadataJSON = $16Metadata | ConvertTo-Json -Depth 10
+        $16MetadataJSON | Out-File ".\working\resourcepack\assets\sketcher\textures\painting\$Filename.png.mcmeta" -Encoding utf8
+
+        $32Metadata = @{
+            animation = @{
+                interpolate = $Interpolate.IsPresent
+                frametime = 2
+                width = $BestSize[0] * 32
+                height = $BestSize[1] * 32
+            }
+        }
+        $32MetadataJSON = $32Metadata | ConvertTo-Json -Depth 10
+        $32MetadataJSON | Out-File ".\working\resourcepack_x32\assets\sketcher\textures\painting\$Filename.png.mcmeta" -Encoding utf8
+
+        $256Metadata = @{
+            animation = @{
+                interpolate = $Interpolate.IsPresent
+                frametime = 2
+                width = $BestSize[0] * 256
+                height = $BestSize[1] * 256
+            }
+        }
+        $256MetadataJSON = $256Metadata | ConvertTo-Json -Depth 10
+        $256MetadataJSON | Out-File ".\working\resourcepack_hd\assets\sketcher\textures\painting\$Filename.png.mcmeta" -Encoding utf8
+    }
 
     #? Generate variant JSONs
     $Painting = @{

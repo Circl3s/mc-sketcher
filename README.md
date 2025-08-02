@@ -39,13 +39,14 @@ You need **ffmpeg** to mess with images, **7zip** to compress the final packs (I
    - `-Path <path>`: Specify a custom image folder.
    - `-Smooth`: Enables bicubic filtering, making the lowres paintings smoother.
    - `-VanillaThumbnails`: Enables inventory previews for vanilla paintings. Note that this option uses default vanilla paintings, so they will be incorrect if you're using another resourcepack that changes the default paintings. This option may change in the future.
+   - `-Interpolate`: Enables interpolation of animated paintings, making the animations smoother.
 4. Install the packs. The `build` folder should be populated by 4 .zip files: one datapack and three resourcepacks. Put the datapack in your `.minecraft/saves/<world>/datapacks` folder, and resourcepacks in your `.minecraft/resourcepacks` folder and enable the one you like in settings.
 
 ## What does it not do? (TO-DO)
 - [x] Generate paintings
 - [x] Add variant crafting
 - [x] Add variant item textures
-- [ ] Support animations
+- [x] Support animations
 - [ ] Generate vanilla-esque picture frames around images
 - [ ] Destroyed paintings drop the correct variant
 - [ ] Branding
