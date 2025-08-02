@@ -15,7 +15,7 @@ This is a PowerShell script that generates a datapack and a resourcepack which, 
 - ffmpeg
 - 7zip
 
-You need **ffmpeg** to mess with images, **7zip** to compress the final packs, **PowerShell** to actually run the script, and of course some **images** you like.
+You need **ffmpeg** to mess with images, **7zip** to compress the final packs (I'm trying to do it with `Compress-Archive`≤ but uhh... it's not working), **PowerShell** to actually run the script, and of course some **images** you like.
 
 ## How do I use this?
 1. First, prepare a folder to put your images in. By default the script will look for a folder named `images` alongside it.

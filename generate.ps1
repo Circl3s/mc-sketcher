@@ -7,13 +7,23 @@ Param(
     [string]$Path = ".\images"
 )
 
+if (-Not (Get-Command ffmpeg -ErrorAction Ignore)) {
+    Write-Error "It seems you don't have ffmpeg installed or it isn't in your PATH. Aborting."
+    Exit
+}
+
+if (-Not (Get-Command 7z -ErrorAction Ignore)) {
+    Write-Error "It seems you don't have ffmpeg installed or it isn't in your PATH. Aborting."
+    Exit
+}
+
 $Images = Get-ChildItem $Path
 $Paintings = @()
 
 #? Reset working directory
+New-Item ".\working" -ItemType Directory -ErrorAction Ignore
 Remove-Item ".\working\*" -Recurse
 
-New-Item ".\working" -ItemType Directory
 Copy-Item ".\assets\datapack_template" ".\working\datapack" -Recurse
 Copy-Item ".\assets\resourcepack_template" ".\working\resourcepack" -Recurse
 Copy-Item ".\assets\resourcepack_template" ".\working\resourcepack_x32" -Recurse
@@ -241,7 +251,8 @@ $ItemModelJSON | Out-File ".\working\resourcepack_x32\assets\minecraft\items\pai
 $ItemModelJSON | Out-File ".\working\resourcepack_hd\assets\minecraft\items\painting.json" -Encoding utf8
 
 #? Create final zip files
-Remove-Item .\build\*
+New-Item ".\build" -ItemType Directory -ErrorAction Ignore
+Remove-Item ".\build\*"
 
 7z a ".\build\MC Sketcher Datapack.zip" .\working\datapack\*
 7z a ".\build\MC Sketcher Paintings x16.zip" .\working\resourcepack\*
