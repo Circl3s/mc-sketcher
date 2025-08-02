@@ -1,0 +1,11 @@
+{
+    "type": "minecraft:stonecutting",
+    "ingredient": "minecraft:painting",
+    "result": {
+        "id": "minecraft:painting",
+        "count": 1,
+        "components": {
+            "minecraft:painting/variant": "$"
+        }
+    }
+}
