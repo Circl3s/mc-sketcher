@@ -5,7 +5,7 @@ A Minecraft datapack all about custom paintings (and more).
 This is a PowerShell script that generates a datapack and a resourcepack which, when used together, allow you to add an arbitrary number of custom paintings to Minecraft.
 
 ## What does it do?
-- **Add your favourite images to Minecraft!** This script will automatically detect optimal painting size for your images, crop and scale them accordingly, and generate a datapack that registers them as new painting variants.
+- **Add your favourite images to Minecraft!** This script will automatically detect optimal painting size for your images, crop and scale them accordingly, and generate a datapack that registers them as new painting variants obtainable in survival.
 - **Choose your quality!** The script generates three resourcepacks with different resolutions: x16, x32, and "HD" (x256). You can also choose if you want your downscaled images to be pixelated (default) or smooth. Once the datapack is loaded you can freely choose and switch between these options.
 - **Pick painting variants instead of choosing randomly!** By putting a painting into the stonecutter, you can choose a specific variant to place (including vanilla ones). You can revert a specific painting back to the default random one by putting it in the crafting grid.
 - **See painting variants at a glance!** Specific paintings will display their art while in your inventory (including vanilla ones - optional).
@@ -40,6 +40,7 @@ You need **ffmpeg** to mess with images, **7zip** to compress the final packs (I
    - `-Smooth`: Enables bicubic filtering, making the lowres paintings smoother.
    - `-VanillaThumbnails`: Enables inventory previews for vanilla paintings. Note that this option uses default vanilla paintings, so they will be incorrect if you're using another resourcepack that changes the default paintings. This option may change in the future.
    - `-Interpolate`: Enables interpolation of animated paintings, making the animations smoother.
+   - `-Placeable`: Enables the new variants to be placed randomly with a default painting. Without this option, you can only get the new variants through the stonecutter crafting.
 4. Install the packs. The `build` folder should be populated by 4 .zip files: one datapack and three resourcepacks. Put the datapack in your `.minecraft/saves/<world>/datapacks` folder, and resourcepacks in your `.minecraft/resourcepacks` folder and enable the one you like in settings.
 
 ## What does it not do? (TO-DO)

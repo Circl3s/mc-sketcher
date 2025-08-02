@@ -5,7 +5,8 @@ Param(
     [int]$MaxSize = 4,
     [switch]$Smooth = $False,
     [switch]$VanillaThumbnails = $False,
-    [switch]$Interpolate = $False
+    [switch]$Interpolate = $False,
+    [switch]$Placeable = $False
 )
 
 if (-Not (Get-Command ffmpeg -ErrorAction Ignore)) {
@@ -194,12 +195,14 @@ ForEach ($Image in $Images) {
     $ModelJSON | Out-File ".\working\resourcepack_hd\assets\sketcher\models\item\painting\$Filename.json" -Encoding utf8
 }
 
-$Placeable = @{
-    values = [array]($Paintings | ForEach-Object {$_.asset_id}) 
+if ($Placeable) {
+    $PlaceableTag = @{
+        values = [array]($Paintings | ForEach-Object {$_.asset_id}) 
+    }
+    
+    $TagJSON = $PlaceableTag | ConvertTo-Json
+    $TagJSON | Out-File ".\working\datapack\data\minecraft\tags\painting_variant\placeable.json" -Encoding utf8
 }
-
-$TagJSON = $Placeable | ConvertTo-Json
-$TagJSON | Out-File ".\working\datapack\data\minecraft\tags\painting_variant\placeable.json" -Encoding utf8
 
 #? Add vanilla variant recipes while we're at it
 $VanillaPaintings = @(
